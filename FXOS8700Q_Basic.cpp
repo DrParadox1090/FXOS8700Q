@@ -1,7 +1,6 @@
 #include "FXOS8700Q_Basic.h"
 #include "FXOS8700Q_Registers.h"
 #include "Arduino.h"
-#include "EEPROM.h"
 #include <stdlib.h>
 
 
@@ -235,39 +234,6 @@ void FXOS8700QBasic::enableOrDisableAutoInc(bool enable,bool activate_sensor ){
             waitTill(ACTIVE);
         }
     }
-}
-
-
-
-
-void FXOS8700QBasic::loadCalibrationData(byte eep_address)
-{
-    byte temp[4*3*3];
-    for (int i = 0; i < 4*3; i++)
-    {
-        temp[i] = EEPROM.read(eep_address + i);
-    }
-    memcpy(accel_offset_,temp,4*3);
-
-    for (int i = 0; i < 4*3; i++)
-    {
-        temp[i] = EEPROM.read(eep_address + 12 + i);
-    }
-    memcpy(mag_offset_,temp,4*3);
-
-    for (int i = 0; i < 4*3*3; i++)
-    {
-        temp[i] = EEPROM.read(eep_address + 24 +  i);
-    }
-    for (int i = 0; i < 3; i++)
-    {
-         memcpy(hard_calib_matrix_[i],temp + (4*3*i),4*3);
-    }
-    
-   
-    
-    
-
 }
 
 
