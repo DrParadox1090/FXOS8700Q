@@ -237,26 +237,47 @@ void FXOS8700QBasic::enableOrDisableAutoInc(bool enable,bool activate_sensor ){
 }
 
 
+
 void FXOS8700QBasic::updateAccelMagData(float* accel_data,float* mag_data)
 {
     short int sensor_data[6] ;
+    float mag_cpy[3];
     readShortIntsFromReg(OUT_X_MSB_REG,3,sensor_data);
     readShortIntsFromReg(M_OUT_X_MSB_REG,3,sensor_data + 3);
 
     for (int  i = 0; i < 3; i++)
     {
-        accel_data[i]  = ((sensor_data[i] >>2) * accel_sensitivity_);
-        accel_data[i] = accel_data[i] ;
-  
+        float temp = ((sensor_data[i] >>2) * accel_sensitivity_) ;
+        if(((temp - accel_data[i]) > 0.02)||((temp - accel_data[i]) < -0.02) ){
+            accel_data[i]  = temp;
+        
+            accel_data[i] -= accel_offset_[i];
+        }
+        
+        /*
+        if((0.98 < accel_data[i])&&(1.02 > accel_data[i])){
+            accel_data[i] = 1.0;
+        }else if ((-0.98 > accel_data[i])&&(accel_data[i] < -1.02 )){
+            accel_data[i] = -1.0;
+        }
+        accel_cpy[i ] = accel_data[i];
+        */
     }
-
-
+    float temp[3];
     for (int i = 0; i < 3; i++)
     {
        
-        mag_data[i]  = ((sensor_data[3 + i]*magneto_sensitivity_) - mag_offset_[i]); 
+        temp[i]  = ((sensor_data[3 + i]*magneto_sensitivity_ ) - hard_calib[i] ); 
+        mag_cpy[i] = temp[i];
         
     }
+
+    for(int i = 0 ; i < 3 ; i++){
+        if((temp[i] - mag_data[i] > 0.5) || (temp[i] - mag_data[i] < -0.5)){
+            mag_data[i] = soft_calib_matrix_[i][0] * mag_cpy[0] + soft_calib_matrix_[i][1] * mag_cpy[1] + soft_calib_matrix_[i][2] * mag_cpy[2];
+        }
+    }
+
     
 }
 
